@@ -344,28 +344,61 @@ document.addEventListener('DOMContentLoaded', function() {
     
             // Remove tokens from URL
             window.location.hash = '';
-    
+
+            // Retrieve user's display name from the ID token
+            const decodedIdToken = parseJwt(idToken);
+            const displayName = decodedIdToken.name || decodedIdToken.email || 'User';
+
+            localStorage.setItem('name', displayName);
+
             // Redirect to the homepage or another desired page
             window.location.href = 'http://localhost:5500';
+            }
+
+            // Update UI on page load
+            updateUI();
+        };
+
+        // Function to parse JWT token
+        function parseJwt(token) {
+            if (!token) {
+                return {};
+            }
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            return JSON.parse(jsonPayload);
+        };
+
+        // Function to update the UI based on login status
+        function updateUI() {
+            const accessToken = localStorage.getItem('access_token');
+            const displayName = localStorage.getItem('name');
+            const logoutButton = document.getElementById('logout');
+            const displayNameElement = document.getElementById('display-name');
+
+            if (accessToken && displayName) {
+                displayNameElement.textContent = `Welcome, ${displayName}`;
+                logoutButton.style.display = 'inline';
+            } else {
+                displayNameElement.textContent = '';
+                logoutButton.style.display = 'none';
+            }
         }
-    };
-    
-    /*
 
-    socket.on('update_board', function(data) {
-        console.log('Received update from server:', data);
-        renderBoard()
-        // Update the board based on the data received
-    });
+        // Function to log out the user
+        function logout() {
+            localStorage.removeItem('id_token');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token_type');
+            localStorage.removeItem('expires_in');
+            localStorage.removeItem('name');
+            updateUI();
+        }
 
-    socket.on('players', function(data) {
-        console.log('Received update from server:', data);
-        showPlayers(data.player_names)
-    });
-
-    socket.on('game_status', function(data) {
-        console.log('Received update from server:', data);
-        showMessage(data.message)
-        // Update the board based on the data received
-    });*/
+        document.getElementById('logout').addEventListener('click', logout);
 });

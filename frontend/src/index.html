@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="css/tic_tac_toe.css">
 </head>
 <body>
+    <div id="user-info">
+        <span id="display-name"></span>
+        <button id="logout" style="display: none;">Log Out</button>
+    </div>
     <div class="board" id="board"></div>
     <script src="tic_tac_toe.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <button id="add-player-btn">Add Player</button>
     <button id="new-game-btn">New Room</button>
     <button id="join-game-btn">Join Room</button>
@@ -20,13 +25,7 @@
     <div id="players" class="players-container"></div>
 
         <!-- Sign-in button -->
-    <a href="https://tic-tac-toe-domain.auth.us-east-1.amazoncognito.com/login?client_id=47hqps03kvjcqh4g1i9rqrs2jl&response_type=token&scope=email+openid&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2F">Sign In</a>
-
-    <!-- Sign-up button -->
-    <a href="https://tic-tac-toe-domain.auth.us-east-1.amazoncognito.com/login?client_id=7gmik8cfvqlns1f12dbieokcno&response_type=token&scope=email+openid&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2F">Sign Up</a>
-
-    <!-- Forgot password link -->
-    <a href="http://localhost:5500/forgotPassword?response_type=token&client_id=your-client-id&redirect_uri=http://localhost:5500/callback">Forgot Password</a>
+    <a href="https://tic-tac-toe-domain.auth.us-east-1.amazoncognito.com/login?client_id=761sinu6b3ak55e7tr4alk4fj1&response_type=token&scope=openid&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2F">Log In</a>
 
 </body>
 </html>

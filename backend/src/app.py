@@ -27,6 +27,7 @@ def add_player():
         return jsonify({'message': 'Token is missing!'}), 401
 
     token = token.split()[1]
+    print(token)
     try:
         claims = verifyToken(token)
         if claims:
@@ -139,8 +140,8 @@ def handle_join(data):
 
 def verifyToken(id_token):
     REGION = 'us-east-1'
-    USERPOOL_ID = 'us-east-1_a5kr1hmEq'
-    APP_CLIENT_ID = '3n7gdamci5t7lfn85vlff521c6'
+    USERPOOL_ID = 'us-east-1_1mHVFExBS'
+    APP_CLIENT_ID = '761sinu6b3ak55e7tr4alk4fj1'
     try:
         verified_claims: dict = cognitojwt.decode(
             id_token,

@@ -32,9 +32,9 @@ resource "aws_cognito_user_pool_client" "tic_tac_toe_user_pool_client" {
   explicit_auth_flows = ["USER_PASSWORD_AUTH"]
   allowed_oauth_flows = ["implicit"]
   supported_identity_providers = ["COGNITO"]
-  allowed_oauth_scopes = ["openid", "email"]
+  allowed_oauth_scopes = ["openid"]
 
-  callback_urls = ["http://localhost:5500/"]
+  callback_urls = ["http://localhost:5500"]
 }
 
 resource "aws_cognito_user_pool_domain" "tic_tac_toe_user_pool_domain" {

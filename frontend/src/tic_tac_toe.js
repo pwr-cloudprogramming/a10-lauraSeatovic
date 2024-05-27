@@ -379,13 +379,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const displayName = localStorage.getItem('name');
             const logoutButton = document.getElementById('logout');
             const displayNameElement = document.getElementById('display-name');
+            const loginButton = document.getElementById('login-btn');
 
             if (accessToken && displayName) {
+                // User is logged in, display user info and logout button
                 displayNameElement.textContent = `Welcome, ${displayName}`;
                 logoutButton.style.display = 'inline';
+                loginButton.style.display = 'none'; // Hide the login button
             } else {
+                // User is not logged in, hide user info and logout button
                 displayNameElement.textContent = '';
                 logoutButton.style.display = 'none';
+                loginButton.style.display = 'block'; // Show the login button
             }
         }
 

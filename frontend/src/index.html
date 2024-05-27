@@ -7,25 +7,42 @@
     <link rel="stylesheet" href="css/tic_tac_toe.css">
 </head>
 <body>
-    <div id="user-info">
-        <span id="display-name"></span>
-        <button id="logout" style="display: none;">Log Out</button>
+    <div id="container">
+        <!-- Login and user info section -->
+        <div id="login-section">
+            <div id="user-info">
+                <span id="display-name"></span>
+                <a id="login-btn" href="https://tic-tac-toe-domain.auth.us-east-1.amazoncognito.com/login?client_id=4j660clo5f8nunsl42an81atnp&response_type=token&scope=openid&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2F">Log In</a>
+                <button id="logout" style="display: none;">Log Out</button>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div id="main-content">
+            <!-- Board section -->
+            <div class="board-container">
+                <div class="board" id="board"></div>
+            </div>
+            
+            <!-- Game info section -->
+            <div class="game-info">
+                <div id="player" class="player-container"></div>
+                <div id="message" class="message-container"></div>
+                <div id="gameIdContainer"></div>
+                <div id="players" class="players-container"></div>
+            </div>
+        </div>
+
+        <!-- Game control buttons -->
+        <div class="game-controls">
+            <button id="add-player-btn">Add Player</button>
+            <button id="new-game-btn">New Room</button>
+            <button id="join-game-btn">Join Room</button>
+        </div>
     </div>
-    <div class="board" id="board"></div>
+
     <script src="tic_tac_toe.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <button id="add-player-btn">Add Player</button>
-    <button id="new-game-btn">New Room</button>
-    <button id="join-game-btn">Join Room</button>
-    <!--<button id="reset-game-btn">Reset Game</button>-->
-    <div id="player" class="player-container"></div>
-    <div id="message" class="message-container"></div>
-    <div id="gameIdContainer"></div>
-    <div id="players" class="players-container"></div>
-
-        <!-- Sign-in button -->
-    <a href="https://tic-tac-toe-domain.auth.us-east-1.amazoncognito.com/login?client_id=761sinu6b3ak55e7tr4alk4fj1&response_type=token&scope=openid&redirect_uri=http%3A%2F%2Flocalhost%3A5500%2F">Log In</a>
-
 </body>
 </html>

@@ -33,7 +33,6 @@ resource "aws_cognito_user_pool_client" "tic_tac_toe_user_pool_client" {
   allowed_oauth_flows = ["implicit"]
   supported_identity_providers = ["COGNITO"]
   allowed_oauth_scopes = ["openid"]
-
   callback_urls = ["http://localhost:5500"]
 }
 

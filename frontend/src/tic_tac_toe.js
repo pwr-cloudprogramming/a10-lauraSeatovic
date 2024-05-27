@@ -7,6 +7,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const baseUrl = 'http://localhost:8080';
     let socket = null;
 
+    const poolData = {
+        UserPoolId: 'us-east-1_UCr3DF2Zn', // Your user pool id here
+        ClientId: '1acemdfjd70jpt56406505a9pe' // Your client id here
+    };
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+    const signupButton = document.getElementById('signup')
+
+    if (signupButton) { // Check if the button exists before adding the event listener
+        signupButton.addEventListener('click', signup);
+    } else {
+        console.error("Element with ID 'signup' not found.");
+    }
+
+    const loginButton = document.getElementById('login')
+    
+    if (loginButton) { // Check if the button exists before adding the event listener
+        loginButton.addEventListener('click', login);
+    } else {
+        console.error("Element with ID 'login' not found.");
+    }
+        
+    function signup() {
+        const email = document.getElementById('signupEmail').value;
+        const name = document.getElementById('signupName').value;
+        const password = document.getElementById('signupPassword').value;
+    
+        const attributeList = [];
+        const dataEmail = {
+            Name: 'email',
+            Value: email,
+        };
+        const dataName = {
+            Name: 'name',
+            Value: name,
+        };
+        const attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
+        const attributeName = new AmazonCognitoIdentity.CognitoUserAttribute(dataName);
+    
+        attributeList.push(attributeEmail);
+        attributeList.push(attributeName);
+    
+        userPool.signUp(email, password, attributeList, null, function (err, result) {
+            if (err) {
+                alert('Error signing up: ' + err.message);
+                return;
+            }
+            const cognitoUser = result.user;
+            alert('Sign-up successful.');
+        });
+    }
+
     //socket.on('connect', function() {
       //  console.log('Connected to server');
     //});
@@ -375,13 +427,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to update the UI based on login status
         function updateUI() {
-            const accessToken = localStorage.getItem('access_token');
+            const idToken = localStorage.getItem('idToken');
             const displayName = localStorage.getItem('name');
             const logoutButton = document.getElementById('logout');
             const displayNameElement = document.getElementById('display-name');
             const loginButton = document.getElementById('login-btn');
 
-            if (accessToken && displayName) {
+            if (idToken && displayName) {
+                console.log("logged in")
                 // User is logged in, display user info and logout button
                 displayNameElement.textContent = `Welcome, ${displayName}`;
                 logoutButton.style.display = 'inline';
@@ -396,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to log out the user
         function logout() {
-            localStorage.removeItem('id_token');
+            localStorage.removeItem('idToken');
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('token_type');
@@ -406,4 +459,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         document.getElementById('logout').addEventListener('click', logout);
+
+
+        
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+        
+            const authenticationData = {
+                Username: email,
+                Password: password,
+            };
+            const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+        
+            const userData = {
+                Username: email,
+                Pool: userPool,
+            };
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+        
+            cognitoUser.authenticateUser(authenticationDetails, {
+                onSuccess: function (result) {
+                    const idToken = result.getIdToken().getJwtToken(); // Get the ID token
+                    // Save the ID token to local storage
+                    localStorage.setItem('idToken', idToken);
+
+                    const decodedIdToken = parseJwt(idToken);
+                    const displayName = decodedIdToken.name || decodedIdToken.email || 'User';
+
+                    localStorage.setItem('name', displayName);
+                    
+                    // Redirect to home page or perform any other action
+                    window.location.href = 'index.html';
+
+                    // Wait for the window to finish navigating to the new page
+                },
+                onFailure: function (err) {
+                    alert('Error signing in: ' + err.message);
+                },
+            });
+        }
+
+        window.onload = function() {
+            // Call updateUI() after the page has loaded
+            updateUI();
+        };
+        
+
 });

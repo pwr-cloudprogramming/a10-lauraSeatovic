@@ -4,3 +4,6 @@ flask_socketio
 gunicorn
 boto3
 cognitojwt
+requests
+jwt
+jwt.algorithms

@@ -4,6 +4,9 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
 from userManager import UserManager
 import cognitojwt
+import requests
+import jwt
+from jwt.algorithms import RSAAlgorithm
 
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app, cors_allowed_origins='*') #modify this!!
@@ -138,22 +141,47 @@ def handle_join(data):
     else:
         print("No room specified in the request.")
 
-def verifyToken(id_token):
-    REGION = 'us-east-1'
-    USERPOOL_ID = 'us-east-1_MWSZ8D6bT'
-    APP_CLIENT_ID = '61f785ntdsa8eo7ivatdqpt5rk'
-    try:
-        verified_claims: dict = cognitojwt.decode(
-            id_token,
-            REGION,
-            USERPOOL_ID,
-            app_client_id=APP_CLIENT_ID,  # Optional
-            testmode=True  # Disable token expiration check for testing purposes
-        )
+EGION = 'us-east-1'
+USERPOOL_ID = 'us-east-1_kSTmxWLPE'
+APP_CLIENT_ID = '6e8tg55ngiab38bbj4i0q16khf'
+JWKS_URL = f'https://cognito-idp.{REGION}.amazonaws.com/{USERPOOL_ID}/.well-known/jwks.json'
 
-        return verified_claims
-    except:
-        return None
+def get_jwks():
+    response = requests.get(JWKS_URL)
+    response.raise_for_status()
+    return response.json()
+
+def verifyToken(id_token):
+    try:
+        jwks = get_jwks()
+        headers = jwt.get_unverified_header(id_token)
+        kid = headers['kid']
+
+        # Find the key with the matching 'kid'
+        key = next((key for key in jwks['keys'] if key['kid'] == kid), None)
+        if not key:
+            raise Exception('Public key not found in JWKS')
+
+        public_key = RSAAlgorithm.from_jwk(key)
+        print(f'Public key: {public_key}')
+
+        # Verify and decode the token
+        payload = jwt.decode(
+            id_token,
+            public_key,
+            algorithms=['RS256'],
+            audience=APP_CLIENT_ID,
+            issuer=f'https://cognito-idp.{REGION}.amazonaws.com/{USERPOOL_ID}'
+        )
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise Exception('Token has expired')
+    except jwt.InvalidTokenError as e:
+        print(f'JWT Error: {e}')
+        raise Exception('Invalid token')
+    except Exception as e:
+        print(f'Error: {e}')
+        raise e
 
 
 if __name__ == '__main__':

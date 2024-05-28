@@ -2,87 +2,176 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_security_group" "allow_ssh_http" {
-  name_prefix = "allow_ssh_http"
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-ingress {
-    from_port   = 8081
-    to_port     = 8081
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+data "aws_iam_role" "existing_role" {
+  name = "LabRole"
 }
 
-resource "aws_instance" "tic_tac_toe" {
-  ami           = "ami-006dcf34c09e50022" // Amazon Linux 2 AMI
-  instance_type = "t2.micro"
-  key_name      = "vockey"
-  vpc_security_group_ids = [
-    aws_security_group.allow_ssh_http.id,
-  ]
-  user_data = <<-EOF
-              #!/bin/bash
-
-              sudo yum install -y docker git python3
-              sudo systemctl enable docker
-              sudo systemctl start docker
-              sudo chown $USER /var/run/docker.sock
-              sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-              sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-              git clone https://github.com/pwr-cloudprogramming/a10-lauraSeatovic.git
-              cd a10-lauraSeatovic
-              PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-              echo $PUBLIC_IP > ip.txt
-              echo "PUBLIC_IP=$PUBLIC_IP" > .env
-              sudo docker-compose up -d
-
-              EOF
+data "aws_iam_instance_profile" "existing_instance_profile" {
+  name = "LabInstanceProfile"
+}
 
 
+resource "aws_elastic_beanstalk_application" "tf-tic-tac-toe" {
+  name = "tic-tac-toe-app"
+  description = "Tic tac toe app"
+  
+}
 
-  tags = {
-    Name = "Tic-Tac-Toe"
-    }
+resource "random_id" "bucket" {
+  byte_length = 8
+}
 
+resource "aws_s3_bucket" "beanstalk_bucket" {
+  bucket = "tf-eb-demo-${random_id.bucket.hex}"
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app_zip" {
+  bucket = aws_s3_bucket.beanstalk_bucket.id
+  key    = "backend.zip"
+  source = "backend/backend.zip"
+  acl    = "private"
+
+  depends_on = [aws_s3_bucket.beanstalk_bucket]
+}
+ 
+resource "aws_elastic_beanstalk_environment" "tf-tic-tac-toe-env" {
+  name                = "tic-tac-toe-env"
+  application = aws_elastic_beanstalk_application.tf-tic-tac-toe.name
+  solution_stack_name = "64bit Amazon Linux 2023 v4.3.1 running Docker" #64bit Amazon Linux 2023/4.3.0 running Docker" Docker running on 64bit Amazon Linux 2023/4.3.0
+  version_label = aws_elastic_beanstalk_application_version.default.name
+  tier = "WebServer"
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = data.aws_iam_instance_profile.existing_instance_profile.name
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "VPCID"
+    value = var.vpc_id
+
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "Subnets"
+    value     = join(",", var.subnet)
+  }
+  setting {
+    namespace = "aws:ec2:instances"
+    name = "InstanceTypes"
+    value = "t2.micro"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "AssociatePublicIpAddress"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "ELBScheme"
+    value     = "public"
+  }
 
 }
 
-output "public_ip" {
-  value = aws_instance.tic_tac_toe.public_ip
+resource "aws_elastic_beanstalk_application_version" "default" {
+  name = "backend"
+  application = aws_elastic_beanstalk_application.tf-tic-tac-toe.name
+  bucket      = aws_s3_bucket.beanstalk_bucket.id
+  key         = aws_s3_bucket_object.app_zip.key
 }
+
+output "url" {
+  value = aws_elastic_beanstalk_environment.tf-tic-tac-toe-env.endpoint_url
+}
+
+
+resource "aws_elastic_beanstalk_application" "tf-tic-tac-toe-front" {
+  name = "tic-tac-toe-app-front"
+  description = "Tic tac toe app front"
+  
+}
+
+
+resource "random_id" "bucket2" {
+  byte_length = 8
+}
+
+resource "aws_s3_bucket" "beanstalk_bucket2" {
+  bucket = "tf-eb-demo-${random_id.bucket2.hex}"
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app2_zip" {
+  bucket = aws_s3_bucket.beanstalk_bucket2.id
+  key    = "frontend.zip"
+  source = "frontend/frontend.zip"
+  acl    = "private"
+
+  depends_on = [aws_s3_bucket.beanstalk_bucket2]
+}
+ 
+resource "aws_elastic_beanstalk_environment" "tf-tic-tac-toe-env2" {
+  depends_on = [aws_elastic_beanstalk_environment.tf-tic-tac-toe-env2]
+  name                = "tic-tac-toe-env2"
+  application = aws_elastic_beanstalk_application.tf-tic-tac-toe-front.name
+  solution_stack_name = "64bit Amazon Linux 2023 v4.3.1 running Docker" #64bit Amazon Linux 2023/4.3.0 running Docker" Docker running on 64bit Amazon Linux 2023/4.3.0
+  version_label = aws_elastic_beanstalk_application_version.front.name
+  tier = "WebServer"
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = data.aws_iam_instance_profile.existing_instance_profile.name
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "VPCID"
+    value = var.vpc_id
+
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "Subnets"
+    value     = join(",", var.subnet)
+  }
+  setting {
+    namespace = "aws:ec2:instances"
+    name = "InstanceTypes"
+    value = "t2.micro"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "AssociatePublicIpAddress"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "ELBScheme"
+    value     = "public"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "PUBLIC_IP"
+    value     = aws_elastic_beanstalk_environment.tf-tic-tac-toe-env.endpoint_url
+  }
+
+}
+
+resource "aws_elastic_beanstalk_application_version" "front" {
+  name = "frontend"
+  application = aws_elastic_beanstalk_application.tf-tic-tac-toe-front.name
+  bucket      = aws_s3_bucket.beanstalk_bucket2.id
+  key         = aws_s3_bucket_object.app2_zip.key
+}
+output "url2" {
+  value = aws_elastic_beanstalk_environment.tf-tic-tac-toe-env2.endpoint_url
+}
+
+
+

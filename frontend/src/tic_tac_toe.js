@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     async function addPlayer() {
-        const id_token = localStorage.getItem('id_token');
+        const id_token = localStorage.getItem('idToken');
         const name = prompt('Enter player name:');
         if (name) {
             const url = `${baseUrl}/add_player`;
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to handle cell click event
     async function handleCellClick(row, col) {
-        const id_token = localStorage.getItem('id_token');
+        const id_token = localStorage.getItem('idToken');
         const playerId = playerIds[currentPlayerIndex];
         const url = `${baseUrl}/make_move`;
         console.log(playerId)
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(hash);
     
             // Get tokens from URL fragments
-            const idToken = params.get('id_token');
+            const idToken = params.get('idToken');
             const accessToken = params.get('access_token');
             const refreshToken = params.get('refresh_token');
             const tokenType = params.get('token_type');
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
             // Store tokens in local storage or cookies
             if (idToken) {
-                localStorage.setItem('id_token', idToken);
+                localStorage.setItem('idToken', idToken);
             }
             if (accessToken) {
                 localStorage.setItem('access_token', accessToken);

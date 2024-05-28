@@ -1,19 +1,15 @@
 FROM busybox:1.35
 
-# Set the working directory
-WORKDIR /app
+RUN adduser -D stud
+USER stud
+WORKDIR /home/stud
 
-# Copy the source code
 COPY src/ .
 
-# Copy the entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
 
-# Set execute permission for the entrypoint script
-RUN chmod +x /app/entrypoint.sh
+ARG PUBLIC_IP
 
-# Expose port 3000 if needed
+RUN sed -i "s#const baseUrl = 'http://localhost:8080';#const baseUrl = 'http://${PUBLIC_IP}:8080';#g" tic_tac_toe.js
+ENTRYPOINT ["busybox"]
 EXPOSE 3000
-
-# Set the entrypoint script as the entry point
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["httpd", "-f", "-v", "-p", "3000"]

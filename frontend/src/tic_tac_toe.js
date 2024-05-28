@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let socket = null;
 
     const poolData = {
-        UserPoolId: 'us-east-1_UCr3DF2Zn', // Your user pool id here
-        ClientId: '1acemdfjd70jpt56406505a9pe' // Your client id here
+        UserPoolId: 'us-east-1_Xn6o2B9bL', // Your user pool id here
+        ClientId: '6dr4s3bnourm4h78lnikpf2ajp' // Your client id here
     };
     const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 

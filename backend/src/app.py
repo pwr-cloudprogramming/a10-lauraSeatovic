@@ -140,8 +140,8 @@ def handle_join(data):
 
 def verifyToken(id_token):
     REGION = 'us-east-1'
-    USERPOOL_ID = 'us-east-1_qq2TXAERv'
-    APP_CLIENT_ID = '4j660clo5f8nunsl42an81atnp'
+    USERPOOL_ID = 'us-east-1_Xn6o2B9bL'
+    APP_CLIENT_ID = '6dr4s3bnourm4h78lnikpf2ajp'
     try:
         verified_claims: dict = cognitojwt.decode(
             id_token,

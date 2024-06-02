@@ -5,5 +5,4 @@ gunicorn
 boto3
 cognitojwt
 requests
-jwt
 PyJWT

@@ -6,4 +6,4 @@ boto3
 cognitojwt
 requests
 jwt
-jwt.algorithms
+PyJWT

@@ -4,12 +4,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetButton = document.getElementById('reset-game-btn');
     const newGameButton = document.getElementById('new-game-btn');
     const joinGameButton = document.getElementById('join-game-btn');
+
+    const verifyButton = document.getElementById('verify')
+
+        if (verifyButton) { // Check if the button exists before adding the event listener
+            verifyButton.addEventListener('click', verifyCode);
+        } else {
+            console.error("Element with ID 'verify' not found.");
+        }
+
     const baseUrl = 'http://localhost:8080';
     let socket = null;
 
     const poolData = {
-        UserPoolId: 'us-east-1_MSUcYwDSt', // Your user pool id here
-        ClientId: '2h9ae6qg72o68a66nisn94d327' // Your client id here
+        UserPoolId: 'us-east-1_FGJdoSQww', // Your user pool id here
+        ClientId: '5cl9epbebunu1vnvjv4cub7ltt' // Your client id here
     };
     const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
@@ -55,7 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const cognitoUser = result.user;
-            alert('Sign-up successful.');
+            // Redirect to verification page with username as query parameter
+            window.location.href = 'verify.html?username=' + encodeURIComponent(email);
         });
     }
 
@@ -71,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function addPlayer() {
         const id_token = localStorage.getItem('idToken');
-        const name = prompt('Enter player name:');
+        const name = localStorage.getItem('name')
         if (name) {
             const url = `${baseUrl}/add_player`;
             const data = {
@@ -339,10 +349,14 @@ document.addEventListener('DOMContentLoaded', function() {
         playersElement.style.display = 'block';
     }
 
-    addButton.addEventListener('click', addPlayer);
-    //resetButton.addEventListener('click', resetBoard);
-    newGameButton.addEventListener('click', startNewGame);
-    joinGameButton.addEventListener('click', joinGame);
+    if (addButton && newGameButton && joinGameButton) { // Check if the button exists before adding the event listener
+        addButton.addEventListener('click', addPlayer);
+        //resetButton.addEventListener('click', resetBoard);
+        newGameButton.addEventListener('click', startNewGame);
+        joinGameButton.addEventListener('click', joinGame);
+    } else {
+        console.error("Elements not found.");
+    }
 
     // Function to render the Tic Tac Toe board
     async function renderBoard() {
@@ -504,6 +518,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Call updateUI() after the page has loaded
             updateUI();
         };
-        
+
+
+        function verifyCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+            const verificationCode = document.getElementById('verificationCode').value;
+
+            const userData = {
+                Username: username,
+                Pool: userPool
+            };
+
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+            cognitoUser.confirmRegistration(verificationCode, true, function (err, result) {
+                if (err) {
+                    alert('Error verifying account: ' + err.message);
+                    return;
+                }
+                window.location.href = 'login.html';
+            });
+        }
 
 });

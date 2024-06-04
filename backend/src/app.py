@@ -142,8 +142,8 @@ def handle_join(data):
         print("No room specified in the request.")
 
 REGION = 'us-east-1'
-USERPOOL_ID = 'us-east-1_FGJdoSQww'
-APP_CLIENT_ID = '5cl9epbebunu1vnvjv4cub7ltt'
+USERPOOL_ID = 'us-east-1_RtsW9dCwF'
+APP_CLIENT_ID = '25f1pfetvq571i5s5d1mggs5to'
 JWKS_URL = f'https://cognito-idp.{REGION}.amazonaws.com/{USERPOOL_ID}/.well-known/jwks.json'
 
 def get_jwks():
